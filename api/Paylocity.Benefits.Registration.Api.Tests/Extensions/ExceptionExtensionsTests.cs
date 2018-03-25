@@ -1,4 +1,5 @@
-﻿using System;
+﻿using FluentAssertions;
+using System;
 using Xunit;
 
 namespace Paylocity.Benefits.Registration.Api.Extensions.Tests
@@ -24,11 +25,10 @@ namespace Paylocity.Benefits.Registration.Api.Extensions.Tests
         }
 
         [Fact]
-        public void ToStringRecursive_ExceptionIsNull_ReturnsString()
+        public void ToStringRecursive_ExceptionIsNull_ReturnsSomeNonEmptyString()
         {
-            var result = ((Exception)null).ToStringRecursive();
-
-            Assert.NotNull(result);
+            ((Exception)null).Invoking(nullException => nullException.ToStringRecursive())
+                .Should().NotThrow("doing so could interrupt logging and lose diagnostic information");
         }
 
         [Fact]
@@ -39,7 +39,7 @@ namespace Paylocity.Benefits.Registration.Api.Extensions.Tests
 
             var actualString = (new TestException(message)).ToStringRecursive();
 
-            Assert.Equal(expectedString, actualString);
+            actualString.Should().Be(expectedString);
         }
 
         [Fact]
@@ -52,7 +52,7 @@ namespace Paylocity.Benefits.Registration.Api.Extensions.Tests
 
             var actualString = new TestException(message3, new TestException(message2, new TestException(message1))).ToStringRecursive();
 
-            Assert.Equal(expectedString, actualString);
+            actualString.Should().Be(expectedString);
         }
     }
 }

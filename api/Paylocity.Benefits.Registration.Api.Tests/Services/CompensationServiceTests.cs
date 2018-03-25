@@ -1,4 +1,5 @@
-﻿using Paylocity.Benefits.Registration.Api.Models;
+﻿using FluentAssertions;
+using Paylocity.Benefits.Registration.Api.Models;
 using Paylocity.Benefits.Registration.Api.Services;
 using System;
 using Xunit;
@@ -12,7 +13,25 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
         {
             var sut = new CompensationService();
 
-            Assert.Throws<ArgumentNullException>(() => sut.GetAnnualSalary(null));
+            sut.Invoking(compensationService => compensationService.GetAnnualSalary(null))
+                .Should().Throw<ArgumentNullException>();
+        }
+
+        [Theory]
+        [InlineData(new object[] { null, "Jackson" })]
+        [InlineData(new object[] { "Derek", "" })]
+        public void GetEmployeeCompensation_InvalidEmployee_ThrowsArgumentException(string questionableFirstName, string questionableLastName)
+        {
+            var invalidPerson = new Person
+            {
+                FirstName = questionableFirstName,
+                LastName = questionableLastName
+            };
+
+            var sut = new CompensationService();
+
+            sut.Invoking(compensationService => compensationService.GetAnnualSalary(invalidPerson))
+                .Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -24,7 +43,7 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
             var sut = new CompensationService();
             var actualSalary = sut.GetAnnualSalary(validPerson);
 
-            Assert.Equal(expectedSalary, actualSalary);
+            actualSalary.Should().Be(expectedSalary);
         }
     }
 }

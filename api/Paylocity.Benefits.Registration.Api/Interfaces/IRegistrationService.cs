@@ -5,7 +5,6 @@ namespace Paylocity.Benefits.Registration.Api.Interfaces
 {
     public interface IRegistrationService
     {
-        Employee GetEmployee(long employeeId);
         Employee RegisterEmployee(Person person);
         Dependent RegisterDependent(long employeeId, Person person);
         IEnumerable<PayPeriod> PreviewPayPeriods(long employeeId);

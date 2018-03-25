@@ -1,4 +1,5 @@
-﻿using Paylocity.Benefits.Registration.Api.Exceptions;
+﻿using FluentAssertions;
+using Paylocity.Benefits.Registration.Api.Exceptions;
 using Paylocity.Benefits.Registration.Api.Models;
 using Paylocity.Benefits.Registration.Api.Repositories;
 using System.Collections.Generic;
@@ -16,7 +17,8 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Repositories
 
             var sut = new InMemoryPersonRepository(emptyEmployeeStore, null);
 
-            Assert.Throws<NonexistentDataException>(() => sut.GetEmployee(idForNonexistentEmployee));
+            sut.Invoking(repository => repository.GetEmployee(idForNonexistentEmployee))
+                .Should().Throw<NonexistentDataException>();
         }
 
         [Fact]
@@ -41,68 +43,68 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Repositories
 
             var actualEmployee = sut.GetEmployee(validEmployeeId);
 
-            Assert.Equal(expectedEmployee.Id, actualEmployee.Id);
-            Assert.Equal(expectedEmployee.FirstName, actualEmployee.FirstName);
-            Assert.Equal(expectedEmployee.LastName, actualEmployee.LastName);
-            Assert.Equal(expectedEmployee.AnnualSalary, actualEmployee.AnnualSalary);
-            Assert.Equal(expectedEmployee.AnnualBenefitsCost, actualEmployee.AnnualBenefitsCost);
-            Assert.Equal(expectedEmployee.Notes, actualEmployee.Notes);
+            actualEmployee.Should().BeEquivalentTo(expectedEmployee);
         }
 
         [Fact]
         public void StoreEmployee_ValidEmployee_SuccessfullyStoresEmployee()
         {
-            var employeeStore = new Dictionary<long, Employee>();
             var expectedFirstName = "Apostolis";
             var expectedLastName = "Falco";
             var expectedAnnualSalary = 24689.00M;
             var expectedAnnualBenefitCost = 388.00M;
             var expectedNotes = "something";
+            var employeeInfo = new EmployeeInfo
+            {
+                FirstName = expectedFirstName,
+                LastName = expectedLastName,
+                AnnualSalary = expectedAnnualSalary,
+                AnnualBenefitsCost = expectedAnnualBenefitCost,
+                Notes = expectedNotes
+            };
+            var employeeStore = new Dictionary<long, Employee>();
 
             var sut = new InMemoryPersonRepository(employeeStore, null);
 
-            var actualEmployee = sut.StoreEmployee(
-                expectedFirstName,
-                expectedLastName,
-                expectedAnnualSalary,
-                expectedAnnualBenefitCost,
-                expectedNotes);
+            var actualEmployee = sut.StoreEmployee(employeeInfo);
 
-            Assert.Equal(expectedFirstName, actualEmployee.FirstName);
-            Assert.Equal(expectedLastName, actualEmployee.LastName);
-            Assert.Equal(expectedAnnualSalary, actualEmployee.AnnualSalary);
-            Assert.Equal(expectedAnnualBenefitCost, actualEmployee.AnnualBenefitsCost);
-            Assert.Equal(expectedNotes, actualEmployee.Notes);
-
-            Assert.Contains(actualEmployee, employeeStore.Values);
+            using (new FluentAssertions.Execution.AssertionScope())
+            {
+                actualEmployee.Should().BeEquivalentTo(employeeInfo);
+                employeeStore.ContainsKey(actualEmployee.Id).Should().BeTrue();
+                employeeStore[actualEmployee.Id].Should().BeSameAs(actualEmployee);
+            }
         }
 
         [Fact]
         public void StoreDependent_ValidDependent_SuccessfullyStoresDependent()
         {
-            var dependentStore = new Dictionary<long, Dependent>();
             var expectedEmployeeId = 1L;
             var expectedFirstName = "Theodosia";
             var expectedLastName = "Kuang";
             var expectedAnnualBenefitCost = 753.00M;
             var expectedNotes = "Some more notes";
 
+            var dependentInfo = new DependentInfo
+            {
+                EmployeeId = expectedEmployeeId,
+                FirstName = expectedFirstName,
+                LastName = expectedLastName,
+                AnnualBenefitsCost = expectedAnnualBenefitCost,
+                Notes = expectedNotes
+            };
+            var dependentStore = new Dictionary<long, Dependent>();
+
             var sut = new InMemoryPersonRepository(null, dependentStore);
 
-            var actualDependent = sut.StoreDependent(
-                expectedEmployeeId,
-                expectedFirstName,
-                expectedLastName,
-                expectedAnnualBenefitCost,
-                expectedNotes);
+            var actualDependent = sut.StoreDependent(dependentInfo);
 
-            Assert.Equal(expectedEmployeeId, actualDependent.EmployeeId);
-            Assert.Equal(expectedFirstName, actualDependent.FirstName);
-            Assert.Equal(expectedLastName, actualDependent.LastName);
-            Assert.Equal(expectedAnnualBenefitCost, actualDependent.AnnualBenefitsCost);
-            Assert.Equal(expectedNotes, actualDependent.Notes);
-
-            Assert.Contains(actualDependent, dependentStore.Values);
+            using (new FluentAssertions.Execution.AssertionScope())
+            {
+                actualDependent.Should().BeEquivalentTo(dependentInfo);
+                dependentStore.ContainsKey(actualDependent.Id).Should().BeTrue();
+                dependentStore[actualDependent.Id].Should().BeSameAs(actualDependent);
+            }
         }
 
         [Fact]
@@ -115,7 +117,7 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Repositories
 
             var actualDependents = sut.GetEmployeeDependents(irrelevantEmployeeId);
 
-            Assert.Empty(actualDependents);
+            actualDependents.Should().BeEmpty();
         }
 
         [Fact]
@@ -128,21 +130,21 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Repositories
                 new Dependent { Id = 1L, EmployeeId = employeeWithDependentsId, FirstName = "Nkosana", LastName = "Raskob", AnnualBenefitsCost = 123.45M, Notes = "something" },
                 new Dependent { Id = 2L, EmployeeId = employeeWithDependentsId, FirstName = "Shahrazad", LastName = "Bach", AnnualBenefitsCost = 200.00M, Notes = "something else" }
             };
-            var otherDependents = new List<Dependent>
+            var dependentsForSomeOtherEmployer = new List<Dependent>
             {
                 new Dependent { Id = 3L, EmployeeId = someOtherEmployeeId, FirstName = "Tao", LastName = "Langlais", AnnualBenefitsCost = 111.00M, Notes = "Yet more notes" },
                 new Dependent { Id = 4L, EmployeeId = someOtherEmployeeId, FirstName = "Gabino", LastName = "Bruhn", AnnualBenefitsCost = 100.00M, Notes = "Blah blah blah" }
             };
 
-            var dependentstore = new Dictionary<long, Dependent>();
-            expectedDependents.ForEach(dependent => dependentstore[dependent.Id] = dependent);
-            otherDependents.ForEach(dependent => dependentstore[dependent.Id] = dependent);
+            var dependentStore = new Dictionary<long, Dependent>();
+            expectedDependents.ForEach(dependent => dependentStore[dependent.Id] = dependent);
+            dependentsForSomeOtherEmployer.ForEach(dependent => dependentStore[dependent.Id] = dependent);
 
-            var sut = new InMemoryPersonRepository(null, dependentstore);
+            var sut = new InMemoryPersonRepository(null, dependentStore);
 
             var actualDependents = sut.GetEmployeeDependents(employeeWithDependentsId);
 
-            Assert.Equal(expectedDependents, actualDependents);
+            actualDependents.Should().BeEquivalentTo(expectedDependents);
         }
     }
 }

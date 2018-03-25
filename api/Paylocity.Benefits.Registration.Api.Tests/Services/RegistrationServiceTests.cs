@@ -1,74 +1,17 @@
-﻿using Moq;
+﻿using FluentAssertions;
+using Moq;
 using Paylocity.Benefits.Registration.Api.Exceptions;
 using Paylocity.Benefits.Registration.Api.Interfaces;
 using Paylocity.Benefits.Registration.Api.Models;
 using Paylocity.Benefits.Registration.Api.Services;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Xunit;
 
 namespace Paylocity.Benefits.Registration.Api.Tests.Services
 {
     public class RegistrationServiceTests
     {
-        [Fact]
-        public void GetEmployee_RepositoryThrowsInvalidRequestException_PropagatesException()
-        {
-            const long someIrrelevantId = 0L;
-
-            var mockRepository = new Mock<IPersonRepository>();
-            var mockCompensationService = new Mock<ICompensationService>();
-            var mockBenefitsService = new Mock<IBenefitsService>();
-            var mockPaymentCalculator = new Mock<IPaymentCalculator>();
-
-            mockRepository.Setup(
-                repository => repository.GetEmployee(someIrrelevantId))
-                .Throws(new NonexistentDataException(someIrrelevantId.ToString()));
-
-            var sut = new RegistrationService(
-                mockRepository.Object,
-                mockCompensationService.Object,
-                mockBenefitsService.Object,
-                mockPaymentCalculator.Object);
-
-            Assert.ThrowsAny<InvalidRequestException>(() => sut.GetEmployee(someIrrelevantId));
-        }
-
-        [Fact]
-        public void GetEmployee_ValidEmployeeId_ReturnsEmployee()
-        {
-            const long someId = 0L;
-            var expectedEmployee = new Employee
-            {
-                Id = someId,
-                FirstName = "Linus",
-                LastName = "Bai",
-                AnnualSalary = 13579.11M,
-                AnnualBenefitsCost = 1234.56M,
-                Notes = "These are some notes"
-            };
-
-            var mockRepository = new Mock<IPersonRepository>();
-            var mockCompensationService = new Mock<ICompensationService>();
-            var mockBenefitsService = new Mock<IBenefitsService>();
-            var mockPaymentCalculator = new Mock<IPaymentCalculator>();
-
-            mockRepository.Setup(
-                repository => repository.GetEmployee(someId))
-                .Returns(expectedEmployee);
-
-            var sut = new RegistrationService(
-                mockRepository.Object,
-                mockCompensationService.Object,
-                mockBenefitsService.Object,
-                mockPaymentCalculator.Object);
-
-            var actualEmployee = sut.GetEmployee(someId);
-
-            Assert.Equal(expectedEmployee, actualEmployee);
-        }
-
         [Fact]
         public void RegisterEmployee_NullPerson_ThrowsArgumentNullException()
         {
@@ -83,7 +26,8 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
                 mockBenefitsService.Object,
                 mockPaymentCalculator.Object);
 
-            Assert.Throws<ArgumentNullException>(() => sut.RegisterEmployee(null));
+            sut.Invoking(registrationService => registrationService.RegisterEmployee(null))
+                .Should().Throw<ArgumentNullException>();
         }
 
 
@@ -92,8 +36,14 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
         [InlineData(new object[] { "Sylvianne", null })]
         [InlineData(new object[] { "", "Tolkien" })]
         [InlineData(new object[] { "Deborah", "" })]
-        public void RegisterEmployee_PersonWithInvalidName_ThrowsArgumentException(string firstName, string lastName)
+        public void RegisterEmployee_PersonWithInvalidName_ThrowsArgumentException(string questionableFirstName, string questionableLastName)
         {
+            var invalidPerson = new Person
+            {
+                FirstName = questionableFirstName,
+                LastName = questionableLastName
+            };
+
             var mockRepository = new Mock<IPersonRepository>();
             var mockCompensationService = new Mock<ICompensationService>();
             var mockBenefitsService = new Mock<IBenefitsService>();
@@ -105,13 +55,8 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
                 mockBenefitsService.Object,
                 mockPaymentCalculator.Object);
 
-            var invalidPerson = new Person
-            {
-                FirstName = firstName,
-                LastName = lastName
-            };
-
-            Assert.Throws<ArgumentException>(() => sut.RegisterEmployee(invalidPerson));
+            sut.Invoking(registrationService => registrationService.RegisterEmployee(invalidPerson))
+                .Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -151,12 +96,12 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
             mockBenefitsService.Setup(service => service.GetAnnualEmployeeBenefitsCost(validPerson))
                 .Returns(new BenefitsInfo { AnnualCost = expectedAnnualBenefitsCost, Notes = expectedNotes });
 
-            mockRepository.Setup(repository => repository.StoreEmployee(
-                expectedFirstName,
-                expectedLastName,
-                expectedAnnualSalary,
-                expectedAnnualBenefitsCost,
-                expectedNotes))
+            mockRepository.Setup(repository => repository.StoreEmployee(It.Is<EmployeeInfo>(employeeInfo =>
+                (employeeInfo.FirstName == expectedFirstName) &&
+                (employeeInfo.LastName == expectedLastName) &&
+                (employeeInfo.AnnualSalary == expectedAnnualSalary) &&
+                (employeeInfo.AnnualBenefitsCost == expectedAnnualBenefitsCost) &&
+                (employeeInfo.Notes == expectedNotes))))
                 .Returns(expectedEmployee);
 
             var sut = new RegistrationService(
@@ -168,7 +113,7 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
             var actualEmployee = sut.RegisterEmployee(validPerson);
 
             mockCompensationService.VerifyAll();
-            Assert.Same(expectedEmployee, actualEmployee);
+            actualEmployee.Should().Be(expectedEmployee);
         }
 
         [Fact]
@@ -187,7 +132,8 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
                 mockBenefitsService.Object,
                 mockPaymentCalculator.Object);
 
-            Assert.Throws<ArgumentNullException>(() => sut.RegisterDependent(irrelevantEmployeeId, null));
+            sut.Invoking(registrationService => registrationService.RegisterDependent(irrelevantEmployeeId, null))
+                .Should().Throw<ArgumentNullException>();
         }
 
 
@@ -196,9 +142,14 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
         [InlineData(new object[] { "Yuliy", null })]
         [InlineData(new object[] { "", "Espenson" })]
         [InlineData(new object[] { "Hikari", "" })]
-        public void RegisterDependent_PersonWithInvalidName_ThrowsArgumentException(string firstName, string lastName)
+        public void RegisterDependent_PersonWithInvalidName_ThrowsArgumentException(string questionableFirstName, string questionableLastName)
         {
             var irrelevantEmployeeId = 0L;
+            var invalidPerson = new Person
+            {
+                FirstName = questionableFirstName,
+                LastName = questionableLastName
+            };
 
             var mockRepository = new Mock<IPersonRepository>();
             var mockCompensationService = new Mock<ICompensationService>();
@@ -211,13 +162,8 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
                 mockBenefitsService.Object,
                 mockPaymentCalculator.Object);
 
-            var invalidPerson = new Person
-            {
-                FirstName = firstName,
-                LastName = lastName
-            };
-
-            Assert.Throws<ArgumentException>(() => sut.RegisterDependent(irrelevantEmployeeId, invalidPerson));
+            sut.Invoking(registrationService => registrationService.RegisterDependent(irrelevantEmployeeId, invalidPerson))
+                .Should().Throw<ArgumentException>();
         }
 
         [Fact]
@@ -254,12 +200,12 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
             mockBenefitsService.Setup(service => service.GetAnnualDependentBenefitsCost(validPerson))
                 .Returns(new BenefitsInfo { AnnualCost = expectedAnnualBenefitsCost, Notes = expectedNotes });
 
-            mockRepository.Setup(repository => repository.StoreDependent(
-                expectedEmployeeId,
-                expectedFirstName,
-                expectedLastName,
-                expectedAnnualBenefitsCost,
-                expectedNotes))
+            mockRepository.Setup(repository => repository.StoreDependent(It.Is<DependentInfo>(dependentInfo =>
+                (dependentInfo.EmployeeId == expectedEmployeeId) &&
+                (dependentInfo.FirstName == expectedFirstName) &&
+                (dependentInfo.LastName == expectedLastName) &&
+                (dependentInfo.AnnualBenefitsCost == expectedAnnualBenefitsCost) &&
+                (dependentInfo.Notes == expectedNotes))))
                 .Returns(expectedDependent);
 
             var sut = new RegistrationService(
@@ -271,13 +217,13 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
             var actualDependent = sut.RegisterDependent(expectedEmployeeId, validPerson);
 
             mockCompensationService.VerifyAll();
-            Assert.Same(expectedDependent, actualDependent);
+            actualDependent.Should().Be(expectedDependent);
         }
 
         [Fact]
         public void PreviewPayPeriods_NonexistentEmployee_PropagatesException()
         {
-            const long someIrrelevantId = 0L;
+            const long nonexistentEmployeeId = 0L;
 
             var mockRepository = new Mock<IPersonRepository>();
             var mockCompensationService = new Mock<ICompensationService>();
@@ -285,8 +231,8 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
             var mockPaymentCalculator = new Mock<IPaymentCalculator>();
 
             mockRepository.Setup(
-                repository => repository.GetEmployee(someIrrelevantId))
-                .Throws(new NonexistentDataException(someIrrelevantId.ToString()));
+                repository => repository.GetEmployee(nonexistentEmployeeId))
+                .Throws(new NonexistentDataException(nonexistentEmployeeId.ToString()));
 
             var sut = new RegistrationService(
                 mockRepository.Object,
@@ -294,7 +240,8 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
                 mockBenefitsService.Object,
                 mockPaymentCalculator.Object);
 
-            Assert.ThrowsAny<InvalidRequestException>(() => sut.PreviewPayPeriods(someIrrelevantId));
+            sut.Invoking(registrationService => registrationService.PreviewPayPeriods(nonexistentEmployeeId))
+                .Should().Throw<InvalidRequestException>();
         }
 
         [Fact]
@@ -335,7 +282,8 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
 
             mockRepository.VerifyAll();
             mockPaymentCalculator.VerifyAll();
-            Assert.Equal(DemoConstants.NUMBER_OF_PAY_PERIODS_PER_YEAR, actualPayPeriods.Count());
+            actualPayPeriods.Should().NotBeNullOrEmpty()
+                .And.HaveCount(DemoConstants.NUMBER_OF_PAY_PERIODS_PER_YEAR);
         }
 
         [Fact]
@@ -387,7 +335,8 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
 
             mockRepository.VerifyAll();
             mockPaymentCalculator.VerifyAll();
-            Assert.Equal(DemoConstants.NUMBER_OF_PAY_PERIODS_PER_YEAR, actualPayPeriods.Count());
+            actualPayPeriods.Should().NotBeNullOrEmpty()
+                .And.HaveCount(DemoConstants.NUMBER_OF_PAY_PERIODS_PER_YEAR);
         }
     }
 }

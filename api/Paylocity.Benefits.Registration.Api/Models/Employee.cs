@@ -2,6 +2,9 @@
 
 namespace Paylocity.Benefits.Registration.Api.Models
 {
+    /// <summary>
+    /// Contains information for a registered employee.
+    /// </summary>
     public class Employee
     {
         public long Id { get; set; }
@@ -17,27 +20,5 @@ namespace Paylocity.Benefits.Registration.Api.Models
         public decimal AnnualBenefitsCost { get; set; }
 
         public string Notes { get; set; }
-
-        public override bool Equals(object obj)
-        {
-            var otherPerson = obj as Employee;
-            if (otherPerson == null)
-            {
-                return false;
-            }
-
-            return
-                (Id == otherPerson.Id) &&
-                (FirstName == otherPerson.FirstName) &&
-                (LastName == otherPerson.LastName) &&
-                (AnnualSalary == otherPerson.AnnualSalary) &&
-                (AnnualBenefitsCost == otherPerson.AnnualBenefitsCost) &&
-                (Notes == otherPerson.Notes);
-        }
-
-        public override int GetHashCode()
-        {
-            return Id.GetHashCode();
-        }
     }
 }

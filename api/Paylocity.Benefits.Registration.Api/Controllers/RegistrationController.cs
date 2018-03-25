@@ -23,23 +23,6 @@ namespace Paylocity.Benefits.Registration.Api.Controllers
             _registrationService = registrationService;
         }
 
-        [Route("benefits/registration/employees/{id}")]
-        public IActionResult GetEmployee(long id)
-        {
-            try
-            {
-                return Ok(_registrationService.GetEmployee(id));
-            }
-            catch (InvalidRequestException)
-            {
-                return NotFound("The requested employee does not exist");
-            }
-            catch (Exception exception)
-            {
-                return HandleUnanticipatedException(exception);
-            }
-        }
-
         [HttpPost]
         [Route("benefits/registration/employees")]
         public IActionResult RegisterEmployee([FromBody] Person person)

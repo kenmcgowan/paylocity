@@ -25,11 +25,6 @@ namespace Paylocity.Benefits.Registration.Api.Services
             _paymentCalculator = paymentCalculator;
         }
 
-        public Employee GetEmployee(long employeeId)
-        {
-            return _personRepository.GetEmployee(employeeId);
-        }
-
         public Employee RegisterEmployee(Person person)
         {
             RegistrationService.CheckPerson(person);
@@ -37,12 +32,14 @@ namespace Paylocity.Benefits.Registration.Api.Services
             var annualSalary = _compensationService.GetAnnualSalary(person);
             var benefitsInfo = _benefitsService.GetAnnualEmployeeBenefitsCost(person);
 
-            var employee = _personRepository.StoreEmployee(
-                person.FirstName,
-                person.LastName,
-                annualSalary,
-                benefitsInfo.AnnualCost,
-                benefitsInfo.Notes);
+            var employee = _personRepository.StoreEmployee(new EmployeeInfo
+            {
+                FirstName = person.FirstName,
+                LastName = person.LastName,
+                AnnualSalary = annualSalary,
+                AnnualBenefitsCost = benefitsInfo.AnnualCost,
+                Notes = benefitsInfo.Notes
+            });
 
             return employee;
         }
@@ -53,12 +50,14 @@ namespace Paylocity.Benefits.Registration.Api.Services
 
             var benefitsInfo = _benefitsService.GetAnnualDependentBenefitsCost(person);
 
-            var dependent = _personRepository.StoreDependent(
-                employeeId,
-                person.FirstName,
-                person.LastName,
-                benefitsInfo.AnnualCost,
-                benefitsInfo.Notes);
+            var dependent = _personRepository.StoreDependent(new DependentInfo
+            {
+                EmployeeId = employeeId,
+                FirstName = person.FirstName,
+                LastName = person.LastName,
+                AnnualBenefitsCost = benefitsInfo.AnnualCost,
+                Notes = benefitsInfo.Notes
+            });
 
             return dependent;
         }
@@ -83,8 +82,6 @@ namespace Paylocity.Benefits.Registration.Api.Services
                     Deductions = deductions,
                     NetPay = partialLineItem.GrossPay - deductions
                 });
-
-            throw new NotImplementedException();
         }
 
         private static void CheckPerson(Person person)

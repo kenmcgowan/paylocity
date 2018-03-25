@@ -1,3 +1,4 @@
+using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,31 +15,25 @@ namespace Paylocity.Benefits.Registration.Api.Services.Tests
             var validTotal = 1000.0M;
             var sut = new EvenDistributionPaymentCalculator();
 
-            Assert.Throws<ArgumentOutOfRangeException>(() => sut.CalculatePayments(validTotal, invalidPaymentCount));
+            sut.Invoking(calculator => calculator.CalculatePayments(validTotal, invalidPaymentCount))
+                .Should().Throw<ArgumentOutOfRangeException>();
         }
 
         [Theory]
         [MemberData(nameof(NonzeroPaymentCountsAndTotals))]
-        public void CalculatePayments_ValidPaymentCountAndTotals_ReturnsCorrectNumberOfPayments(decimal validTotal, int expectedPaymentCount)
+        public void CalculatePayments_ValidPaymentCountAndTotals_ReturnsCorrectNumberOfPaymentsWithCorrectTotal(decimal expectedTotal, int expectedPaymentCount)
         {
             var sut = new EvenDistributionPaymentCalculator();
 
-            var payments = sut.CalculatePayments(validTotal, expectedPaymentCount);
-            var actualPaymentCount = payments.Count();
+            var actualPayments = sut.CalculatePayments(expectedTotal, expectedPaymentCount);
 
-            Assert.Equal(expectedPaymentCount, actualPaymentCount);
-        }
+            actualPayments.Should().NotBeNull();
 
-        [Theory]
-        [MemberData(nameof(NonzeroPaymentCountsAndTotals))]
-        public void CalculatePayments_ValidPaymentCountAndTotals_SumOfAllPaymentsEqualsTotal(decimal expectedTotal, int validPaymentCount)
-        {
-            var sut = new EvenDistributionPaymentCalculator();
-
-            var payments = sut.CalculatePayments(expectedTotal, validPaymentCount);
-            var actualTotal = payments.Sum();
-
-            Assert.Equal(expectedTotal, actualTotal);
+            using (new FluentAssertions.Execution.AssertionScope())
+            {
+                actualPayments.Count().Should().Be(expectedPaymentCount);
+                actualPayments.Sum().Should().Be(expectedTotal);
+            }
         }
 
         [Theory]
@@ -48,27 +43,14 @@ namespace Paylocity.Benefits.Registration.Api.Services.Tests
             var sut = new EvenDistributionPaymentCalculator();
 
             var payments = sut.CalculatePayments(validTotal, validPaymentCount);
+
+            payments.Should().NotBeNull();
+            payments.Count().Should().BeGreaterOrEqualTo(1);
+
             var firstPayment = payments[0];
 
-            for (int index = 1; index < payments.Count(); ++index)
-            {
-                var difference = Math.Abs(payments[index] - firstPayment);
-                Assert.True(difference <= 0.01M, $"The first payment and payment {index} differed by more than 1 cent (difference = {difference}");
-            }
-        }
-
-        [Theory]
-        [MemberData(nameof(ValidPaymentCountsAndTotalsWithFractionalCents))]
-        public void CalculatePayments_TotalsWithFractionalCents_SumOfAllPaymentsEqualsTotalWithoutFractionalCents(decimal totalWithFractionalCents, int validPaymentCount)
-        {
-            var sut = new EvenDistributionPaymentCalculator();
-
-            var payments = sut.CalculatePayments(totalWithFractionalCents, validPaymentCount);
-            var actualTotal = payments.Sum();
-            var difference = Math.Abs(totalWithFractionalCents - actualTotal);
-
-            Assert.NotEqual(0.0M, difference);
-            Assert.True(difference < 0.01M, "The difference between the sum of payments and the total >= 0.01");
+            payments.All(payment => Math.Abs(payment - firstPayment) <= 0.01M)
+                .Should().BeTrue("the distribution is evened out so no payment differs from the first payment by more than one penny");
         }
 
         #region test data
@@ -85,16 +67,6 @@ namespace Paylocity.Benefits.Registration.Api.Services.Tests
             {
                 // Return all combinations of the valid totals and valid payment counts
                 return EvenDistributionPaymentCalculatorTests._validTotals.SelectMany(total => EvenDistributionPaymentCalculatorTests._validPaymentCounts,
-                    (total, paymentCount) => new object[] { total, paymentCount });
-            }
-        }
-
-        public static IEnumerable<object[]> ValidPaymentCountsAndTotalsWithFractionalCents
-        {
-            get
-            {
-                // Return all combinations of the totals with fractional cents and valid payment counts
-                return EvenDistributionPaymentCalculatorTests._totalsWithFractionalCents.SelectMany(total => EvenDistributionPaymentCalculatorTests._validPaymentCounts,
                     (total, paymentCount) => new object[] { total, paymentCount });
             }
         }

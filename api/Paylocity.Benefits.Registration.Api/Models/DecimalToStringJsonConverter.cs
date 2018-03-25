@@ -3,6 +3,10 @@ using System;
 
 namespace Paylocity.Benefits.Registration.Api.Models
 {
+    /// <summary>
+    /// Provides the means to convert decimal fields to strings when converting to JSON. Does
+    /// not support converting strings back to decimal during deserialization.
+    /// </summary>
     public class DecimalToStringJsonConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType)

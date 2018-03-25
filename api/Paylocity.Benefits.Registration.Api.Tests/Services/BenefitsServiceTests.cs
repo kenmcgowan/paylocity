@@ -1,4 +1,5 @@
-﻿using Paylocity.Benefits.Registration.Api.Models;
+﻿using FluentAssertions;
+using Paylocity.Benefits.Registration.Api.Models;
 using Paylocity.Benefits.Registration.Api.Services;
 using System;
 using Xunit;
@@ -12,7 +13,8 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
         {
             var sut = new BenefitsService();
 
-            Assert.Throws<ArgumentNullException>(() => sut.GetAnnualEmployeeBenefitsCost(null));
+            sut.Invoking(benefitsService => benefitsService.GetAnnualEmployeeBenefitsCost(null))
+                .Should().Throw<ArgumentNullException>();
         }
 
         [Theory]
@@ -25,7 +27,8 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
 
             var sut = new BenefitsService();
 
-            Assert.ThrowsAny<ArgumentException>(() => sut.GetAnnualEmployeeBenefitsCost(null));
+            sut.Invoking(benefitsService => benefitsService.GetAnnualEmployeeBenefitsCost(invalidPerson))
+                .Should().Throw<ArgumentException>();
         }
 
         [Theory]
@@ -40,8 +43,13 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
             var sut = new BenefitsService();
             var result = sut.GetAnnualEmployeeBenefitsCost(validPersonWithNoDiscount);
 
-            Assert.Equal(expectedAnnualBenefitsCost, result.AnnualCost);
-            Assert.Equal(string.Empty, result.Notes);
+            result.Should().NotBeNull();
+
+            using (new FluentAssertions.Execution.AssertionScope())
+            {
+                result.AnnualCost.Should().Be(expectedAnnualBenefitsCost);
+                result.Notes.Should().BeEmpty("neither the person's first nor last names starts with 'a', so they don't get a discount and there's no need for a note.");
+            }
         }
 
         [Theory]
@@ -56,9 +64,13 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
             var sut = new BenefitsService();
             var result = sut.GetAnnualEmployeeBenefitsCost(validPersonWithDiscount);
 
-            Assert.Equal(expectedAnnualBenefitsCost, result.AnnualCost);
-            Assert.NotNull(result.Notes);
-            Assert.True(result.Notes.Length > 0, "The benefits information did not contain any explanatory note");
+            result.Should().NotBeNull();
+
+            using (new FluentAssertions.Execution.AssertionScope())
+            {
+                result.AnnualCost.Should().Be(expectedAnnualBenefitsCost);
+                result.Notes.Should().NotBeNullOrEmpty("the person's first or last name started with the letter 'A', entitling them to a discount, which warrants an explanatory note.");
+            }
         }
 
         [Fact]
@@ -66,7 +78,8 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
         {
             var sut = new BenefitsService();
 
-            Assert.Throws<ArgumentNullException>(() => sut.GetAnnualDependentBenefitsCost(null));
+            sut.Invoking(benefitsService => benefitsService.GetAnnualDependentBenefitsCost(null))
+                .Should().Throw<ArgumentNullException>();
         }
 
         [Theory]
@@ -79,7 +92,8 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
 
             var sut = new BenefitsService();
 
-            Assert.ThrowsAny<ArgumentException>(() => sut.GetAnnualDependentBenefitsCost(null));
+            sut.Invoking(benefitsService => benefitsService.GetAnnualDependentBenefitsCost(invalidPerson))
+                .Should().Throw<ArgumentException>();
         }
 
         [Theory]
@@ -92,10 +106,16 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
             var validPersonWithNoDiscount = new Person { FirstName = firstName, LastName = lastName };
 
             var sut = new BenefitsService();
+
             var result = sut.GetAnnualDependentBenefitsCost(validPersonWithNoDiscount);
 
-            Assert.Equal(expectedAnnualBenefitsCost, result.AnnualCost);
-            Assert.Equal(string.Empty, result.Notes);
+            result.Should().NotBeNull();
+
+            using (new FluentAssertions.Execution.AssertionScope())
+            {
+                result.AnnualCost.Should().Be(expectedAnnualBenefitsCost);
+                result.Notes.Should().BeEmpty("neither the person's first nor last names starts with 'a', so they don't get a discount and there's no need for a note.");
+            }
         }
 
         [Theory]
@@ -110,9 +130,13 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Services
             var sut = new BenefitsService();
             var result = sut.GetAnnualDependentBenefitsCost(validPersonWithDiscount);
 
-            Assert.Equal(expectedAnnualBenefitsCost, result.AnnualCost);
-            Assert.NotNull(result.Notes);
-            Assert.True(result.Notes.Length > 0, "The benefits information did not contain any explanatory note");
+            result.Should().NotBeNull();
+
+            using (new FluentAssertions.Execution.AssertionScope())
+            {
+                result.AnnualCost.Should().Be(expectedAnnualBenefitsCost);
+                result.Notes.Should().NotBeNullOrEmpty("the person's first or last name started with the letter 'A', entitling them to a discount, which warrants an explanatory note.");
+            }
         }
     }
 }

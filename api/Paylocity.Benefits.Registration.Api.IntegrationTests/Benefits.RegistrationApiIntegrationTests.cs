@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using FluentAssertions;
+using Newtonsoft.Json.Linq;
 using Paylocity.Benefits.Registration.Api;
 using Paylocity.Benefits.Registration.Api.Models;
 using System.Collections.Generic;
@@ -22,46 +23,6 @@ namespace Paylocity.Benefits.Registration.IntegrationTests
         }
 
         [Fact]
-        public async Task GetEmployee_ValidId_Returns200AndCorrectEmployee()
-        {
-            var expectedEmployee = new Employee
-            {
-                Id = 1L,
-                FirstName = "Bjoern",
-                LastName = "Giehl",
-                AnnualSalary = 13579.11M,
-                AnnualBenefitsCost = 2468.10M,
-                Notes = "Some notes"
-            };
-
-            using (TestDataStores.Scope())
-            {
-                TestDataStores.EmployeeStore[expectedEmployee.Id] = expectedEmployee;
-
-                var expectedContent = JObject.Parse(RegistrationApiIntegrationTests.GetEmployeeJson(expectedEmployee));
-
-                var response = await _testContext.Client.GetAsync($"/benefits/registration/employees/{expectedEmployee.Id}");
-                var responseBody = await response.Content.ReadAsStringAsync();
-                var actualContent = JObject.Parse(responseBody);
-
-                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-                // Comparison JSON trees means we're not sensitive to non-material variations in text representation (whitespace, etc.).
-                Assert.True(JToken.DeepEquals(actualContent, expectedContent), "The content returned from the api did not match the expected content: " + responseBody);
-            }
-        }
-
-        [Fact]
-        public async Task GetEmployee_NonexistentEmployeeId_Returns404()
-        {
-            var idForNonexistentEmployee = long.MinValue;
-            var response = await _testContext.Client.GetAsync($"/benefits/registration/employees/{idForNonexistentEmployee}");
-            var actualContent = await response.Content.ReadAsStringAsync();
-
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        }
-
-        [Fact]
         public async Task RegisterEmployee_InvalidPerson_Returns400()
         {
             var invalidPersonJson = RegistrationApiIntegrationTests.GetPersonJson(firstName: string.Empty, lastName: string.Empty);
@@ -69,7 +30,8 @@ namespace Paylocity.Benefits.Registration.IntegrationTests
 
             var response = await _testContext.Client.PostAsync("/benefits/registration/employees", invalidHttpContent);
 
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            response.Should().NotBeNull();
+            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
 
         [Fact]
@@ -87,8 +49,13 @@ namespace Paylocity.Benefits.Registration.IntegrationTests
                     employee => (employee.FirstName == expectedFirstName) && (employee.LastName == expectedLastName))
                     .SingleOrDefault();
 
-                Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-                Assert.NotNull(storedEmployee);
+                response.Should().NotBeNull();
+
+                using (new FluentAssertions.Execution.AssertionScope())
+                {
+                    response.StatusCode.Should().Be(HttpStatusCode.Created);
+                    storedEmployee.Should().NotBeNull();
+                }
             }
         }
 
@@ -101,7 +68,8 @@ namespace Paylocity.Benefits.Registration.IntegrationTests
 
             var response = await _testContext.Client.PostAsync($"/benefits/registration/employees/{irrelevantEmployeeId}/dependents", invalidHttpContent);
 
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            response.Should().NotBeNull();
+            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
 
         [Fact]
@@ -120,8 +88,13 @@ namespace Paylocity.Benefits.Registration.IntegrationTests
                     dependent => (dependent.FirstName == expectedFirstName) && (dependent.LastName == expectedLastName))
                     .SingleOrDefault();
 
-                Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-                Assert.NotNull(storedDependent);
+                response.Should().NotBeNull();
+
+                using (new FluentAssertions.Execution.AssertionScope())
+                {
+                    response.StatusCode.Should().Be(HttpStatusCode.Created);
+                    storedDependent.Should().NotBeNull();
+                }
             }
         }
 
@@ -132,7 +105,8 @@ namespace Paylocity.Benefits.Registration.IntegrationTests
             var response = await _testContext.Client.GetAsync($"/benefits/registration/employees/{idForNonexistentEmployee}/payperiods");
             var actualContent = await response.Content.ReadAsStringAsync();
 
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            response.Should().NotBeNull();
+            response.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
         [Fact]
@@ -169,10 +143,14 @@ namespace Paylocity.Benefits.Registration.IntegrationTests
                 var responseBody = await response.Content.ReadAsStringAsync();
                 var actualContent = JObject.Parse(responseBody);
 
-                Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+                response.Should().NotBeNull();
 
-                // Comparison JSON trees means we're not sensitive to non-material variations in text representation (whitespace, etc.).
-                Assert.True(JToken.DeepEquals(expectedContent, actualContent), "The actual content returned did not match the expected content: " + responseBody);
+                using (new FluentAssertions.Execution.AssertionScope())
+                {
+                    response.StatusCode.Should().Be(HttpStatusCode.OK);
+                    JToken.DeepEquals(expectedContent, actualContent)
+                        .Should().BeTrue("ignoring whitespace, the JSON results should be equivalent");
+                }
             }
         }
 
