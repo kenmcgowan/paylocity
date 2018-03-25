@@ -39,7 +39,7 @@ namespace Paylocity.Benefits.Registration.Api.Services
                 lastName.StartsWith("a", ignoreCase: true, culture: CultureInfo.InvariantCulture))
             {
                 annualBenefitsCost *= (1.0M - DemoConstants.MAGIC_ALPHABET_DISCOUNT);
-                notes = string.Format("Awesome name, {0:P2} benefits discount!", DemoConstants.MAGIC_ALPHABET_DISCOUNT);
+                notes = string.Format("Awesome name, {0:P0} benefits discount!", DemoConstants.MAGIC_ALPHABET_DISCOUNT);
             }
 
             return new BenefitsInfo { AnnualCost = annualBenefitsCost, Notes = notes };
