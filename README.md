@@ -49,7 +49,6 @@ npm test
 To run the API and UI separately, you'll need two CLI's: One for the API, and one for the UI.
 
 ### Start the API
-These instructions assume you've already run `npm install` as described above.
 
 ```
 # Starting from the root project folder, change to the API project folder.
@@ -58,7 +57,7 @@ dotnet run
 ```
 
 ### Start the UI
-In a separate CLI, starting again from the root project folder.
+These instructions assume you've already run `npm install` as described above. In a separate CLI, starting again from the root project folder.
 
 ```
 cd ui
