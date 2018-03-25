@@ -13,6 +13,8 @@ The configuration files included with the source code should be sufficient to bu
 ### Building and testing the API
 The API was built using MS Visual Studio 2017 Community Edition. You can either open the solution file with a suitable version of Visual Studio or you can build the solution using the `dotnet` cli. Throughout the rest of these instructions, I'll describe how to build, run tests, and run the app using command line tools
 
+**Note:** If you choose build the API using Visual Studio instead, you'll need to verify the URL on which the API is running and update the UI to point to the correct URL. See the [instructions](#updating-the-ui-configuration) below.
+
 ```
 # First make sure you're in the /api folder.
 cd api
@@ -59,6 +61,7 @@ dotnet run
 ```
 
 ### Start the UI
+
 These instructions assume you've already run `npm install` as described above. In a separate CLI, starting again from the root project folder.
 
 ```
@@ -73,8 +76,13 @@ That should be it! The application should load in a browser window.
 ### Browser Compatibility
 The application was tested in Chrome, FireFox, and Edge.
 
-### Configuration
-The UI configuration values are stored in an `.env` file. If you happen to make any changes to this file, be sure to run `npm install` again to pick up the changes.
+### Updating the UI Configuration
+The UI gets the URL to use from environment variables. Configuration values are defined in the `/ui/.env` file, and their values are assigned to environment variable when the `npm install` command is run. If for any reason you need to update the API URL used by the ui, follow these steps:
+
+1. Update the `/ui/.env` file.
+1. Open a CLI and CD to the `/ui` folder.
+1. Run `npm install`. This will check packages, but it will also set environment variables from the `.env` file.
+1. Run `npm start`.
 
 ### Why so many tests?
 You may notice while running the API unit tests that there appear to be *a lot* of tests. However, looking through the unit test code, you'll find that there are a reasonably typical number of tests, but that some of those tests (especially those that exercise calculations involving money) are run many times with a range of inputs. Each separate set of inputs appears as a single test in the results.
