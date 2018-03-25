@@ -21,9 +21,9 @@ describe('PayPeriodsPreview', () => {
     const middlewares = [];
     const mockStore = configureMockStore(middlewares);
     const payPeriods = [
-      { Number: 1, GrossPay: '123.45', Deductions: '23.45', NetPay: '100.00' },
-      { Number: 2, GrossPay: '123.45', Deductions: '23.45', NetPay: '100.00' },
-      { Number: 3, GrossPay: '123.45', Deductions: '23.45', NetPay: '100.00' },
+      { number: 1, GrossPay: '123.45', Deductions: '23.45', NetPay: '100.00' },
+      { number: 2, GrossPay: '123.45', Deductions: '23.45', NetPay: '100.00' },
+      { number: 3, GrossPay: '123.45', Deductions: '23.45', NetPay: '100.00' },
     ];
     const initialState = { employee: {}, dependents: [], payPeriods: payPeriods };
     const store = mockStore(initialState);

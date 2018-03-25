@@ -38,10 +38,12 @@ cd /ui
 npm install
 ```
 
-From there, you can use the `npm test` command to run tests.
+From there, you can use the `npm test` command to run tests. Note that `npm test` doesn't exit automatically. You can exit the test runner by hitting CTRL+C.
+
+Also, the first two dashes with no subsequent argument are intentional; they're required to forward command line arguments to the test runner (jest).
 
 ```
-npm test
+npm test -- --watchAll
 ```
 
 ## Running the app

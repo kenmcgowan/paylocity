@@ -23,7 +23,7 @@ namespace Paylocity.Benefits.Registration.Api.Controllers
             _registrationService = registrationService;
         }
 
-        [Route("registration/employees/{id}")]
+        [Route("benefits/registration/employees/{id}")]
         public IActionResult GetEmployee(long id)
         {
             try
@@ -41,7 +41,7 @@ namespace Paylocity.Benefits.Registration.Api.Controllers
         }
 
         [HttpPost]
-        [Route("registration/employees")]
+        [Route("benefits/registration/employees")]
         public IActionResult RegisterEmployee([FromBody] Person person)
         {
             try
@@ -61,7 +61,7 @@ namespace Paylocity.Benefits.Registration.Api.Controllers
         }
 
         [HttpPost]
-        [Route("registration/employees/{employeeId}/dependents")]
+        [Route("benefits/registration/employees/{employeeId}/dependents")]
         public IActionResult RegisterEmployee(long employeeId, [FromBody] Person person)
         {
             try
@@ -80,7 +80,7 @@ namespace Paylocity.Benefits.Registration.Api.Controllers
             }
         }
 
-        [Route("registration/employees/{employeeId}/payperiods")]
+        [Route("benefits/registration/employees/{employeeId}/payperiods")]
         public IActionResult PreviewPayPeriods(long employeeId)
         {
             try

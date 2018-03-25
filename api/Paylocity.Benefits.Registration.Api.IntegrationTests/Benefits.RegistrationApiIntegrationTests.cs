@@ -40,7 +40,7 @@ namespace Paylocity.Benefits.Registration.IntegrationTests
 
                 var expectedContent = JObject.Parse(RegistrationApiIntegrationTests.GetEmployeeJson(expectedEmployee));
 
-                var response = await _testContext.Client.GetAsync($"/registration/employees/{expectedEmployee.Id}");
+                var response = await _testContext.Client.GetAsync($"/benefits/registration/employees/{expectedEmployee.Id}");
                 var responseBody = await response.Content.ReadAsStringAsync();
                 var actualContent = JObject.Parse(responseBody);
 
@@ -55,7 +55,7 @@ namespace Paylocity.Benefits.Registration.IntegrationTests
         public async Task GetEmployee_NonexistentEmployeeId_Returns404()
         {
             var idForNonexistentEmployee = long.MinValue;
-            var response = await _testContext.Client.GetAsync($"/registration/employees/{idForNonexistentEmployee}");
+            var response = await _testContext.Client.GetAsync($"/benefits/registration/employees/{idForNonexistentEmployee}");
             var actualContent = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -67,7 +67,7 @@ namespace Paylocity.Benefits.Registration.IntegrationTests
             var invalidPersonJson = RegistrationApiIntegrationTests.GetPersonJson(firstName: string.Empty, lastName: string.Empty);
             var invalidHttpContent = new StringContent(invalidPersonJson, Encoding.UTF8, "text/json");
 
-            var response = await _testContext.Client.PostAsync("/registration/employees", invalidHttpContent);
+            var response = await _testContext.Client.PostAsync("/benefits/registration/employees", invalidHttpContent);
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
@@ -82,7 +82,7 @@ namespace Paylocity.Benefits.Registration.IntegrationTests
 
             using (TestDataStores.Scope())
             {
-                var response = await _testContext.Client.PostAsync("/registration/employees", validHttpContent);
+                var response = await _testContext.Client.PostAsync("/benefits/registration/employees", validHttpContent);
                 var storedEmployee = TestDataStores.EmployeeStore.Values.Where(
                     employee => (employee.FirstName == expectedFirstName) && (employee.LastName == expectedLastName))
                     .SingleOrDefault();
@@ -99,7 +99,7 @@ namespace Paylocity.Benefits.Registration.IntegrationTests
             var invalidPersonJson = RegistrationApiIntegrationTests.GetPersonJson(firstName: string.Empty, lastName: string.Empty);
             var invalidHttpContent = new StringContent(invalidPersonJson, Encoding.UTF8, "text/json");
 
-            var response = await _testContext.Client.PostAsync($"/registration/employees/{irrelevantEmployeeId}/dependents", invalidHttpContent);
+            var response = await _testContext.Client.PostAsync($"/benefits/registration/employees/{irrelevantEmployeeId}/dependents", invalidHttpContent);
 
             Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
@@ -115,7 +115,7 @@ namespace Paylocity.Benefits.Registration.IntegrationTests
 
             using (TestDataStores.Scope())
             {
-                var response = await _testContext.Client.PostAsync($"/registration/employees/{expectedEmployeeId}/dependents", validHttpContent);
+                var response = await _testContext.Client.PostAsync($"/benefits/registration/employees/{expectedEmployeeId}/dependents", validHttpContent);
                 var storedDependent = TestDataStores.DependentStore.Values.Where(
                     dependent => (dependent.FirstName == expectedFirstName) && (dependent.LastName == expectedLastName))
                     .SingleOrDefault();
@@ -129,7 +129,7 @@ namespace Paylocity.Benefits.Registration.IntegrationTests
         public async Task PreviewPayPeriods_NonexistentEmployee_Returns404()
         {
             var idForNonexistentEmployee = long.MinValue;
-            var response = await _testContext.Client.GetAsync($"/registration/employees/{idForNonexistentEmployee}/payperiods");
+            var response = await _testContext.Client.GetAsync($"/benefits/registration/employees/{idForNonexistentEmployee}/payperiods");
             var actualContent = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
@@ -165,7 +165,7 @@ namespace Paylocity.Benefits.Registration.IntegrationTests
                 TestDataStores.EmployeeStore[employee.Id] = employee;
                 TestDataStores.DependentStore[dependent.Id] = dependent;
 
-                var response = await _testContext.Client.GetAsync($"/registration/employees/{employee.Id}/payperiods");
+                var response = await _testContext.Client.GetAsync($"/benefits/registration/employees/{employee.Id}/payperiods");
                 var responseBody = await response.Content.ReadAsStringAsync();
                 var actualContent = JObject.Parse(responseBody);
 
