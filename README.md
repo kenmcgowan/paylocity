@@ -10,16 +10,14 @@ The application consists of two parts:
 
 The configuration files included with the source code should be sufficient to build and run the application without having to adjust any settings.
 
-### Building and testing the api
-The API was built using MS Visual Studio 2017 Community Edition. You can either open the solution file with a suitable version of Visual Studio or you can build the solution using the `dotnet` cli. Throughout these instructions, I'll describe how to build, run tests, and run the app using command line tools
+### Building and testing the API
+The API was built using MS Visual Studio 2017 Community Edition. You can either open the solution file with a suitable version of Visual Studio or you can build the solution using the `dotnet` cli. Throughout the rest of these instructions, I'll describe how to build, run tests, and run the app using command line tools
 
 ```
-# Build the solution, then run unit and integration tests.
-
 # First make sure you're in the /api folder.
 cd api
 
-# To build the API solution:
+# Build the API solution:
 dotnet build
 
 # Run unit tests
@@ -42,9 +40,13 @@ npm install
 
 From there, you can use the `npm test` command to run tests.
 
+```
+npm test
+```
+
 ## Running the app
 
-To run the API and UI separately, you'll need two CLI's.
+To run the API and UI separately, you'll need two CLI's: One for the API, and one for the UI.
 
 ### Start the API
 These instructions assume you've already run `npm install` as described above.
@@ -62,3 +64,16 @@ In a separate CLI, starting again from the root project folder.
 cd ui
 npm start
 ```
+
+That should be it! The application should load in a browser window.
+
+## Notes
+
+### Browser Compatibility
+The application was tested in Chrome, FireFox, and Edge.
+
+### Configuration
+The UI configuration values are stored in an `.env` file. If you happen to make any changes to this file, be sure to run `npm install` again to pick up the changes.
+
+### Why so many tests?
+You may notice while running the API unit tests that there appear to be *a lot* of tests. However, looking through the unit test code, you'll find that there are a reasonably typical number of tests, but that some of those tests (especially those that exercise calculations involving money) are run many times with a range of inputs. Each separate set of inputs appears as a single test in the results.
