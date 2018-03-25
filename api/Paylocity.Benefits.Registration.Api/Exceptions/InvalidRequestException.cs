@@ -3,10 +3,13 @@ using System.Runtime.Serialization;
 
 namespace Paylocity.Benefits.Registration.Api.Exceptions
 {
+    /// <summary>
+    /// An exception that indicates an operation could not be completed because the request was invalid.
+    /// </summary>
     [Serializable]
     public class InvalidRequestException : Exception
     {
-        private const string DefaultMessage = "The request was not valid and could not be completed";
+        private const string DefaultMessage = "The request was not valid and the operation could not be completed";
 
         public InvalidRequestException() :
             base(InvalidRequestException.DefaultMessage)

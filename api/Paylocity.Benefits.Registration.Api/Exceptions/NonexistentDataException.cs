@@ -3,6 +3,9 @@ using System.Runtime.Serialization;
 
 namespace Paylocity.Benefits.Registration.Api.Exceptions
 {
+    /// <summary>
+    /// An exception to indicate that some requested data does not exist.
+    /// </summary>
     [Serializable]
     public class NonexistentDataException : InvalidRequestException
     {
