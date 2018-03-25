@@ -5,6 +5,7 @@ import AppBar from 'material-ui/AppBar';
 import Drawer from 'material-ui/Drawer';
 import MenuItem from 'material-ui/MenuItem';
 import EmployeeSummary from './containers/EmployeeSummary';
+import ErrorNotifier from './containers/ErrorNotifier';
 import './App.css';
 import {fade} from 'material-ui/utils/colorManipulator';
 import {
@@ -65,6 +66,7 @@ export default class App extends Component {
             <div style={ { marginTop: "60px" } }>
               <EmployeeSummary />
             </div>
+            <ErrorNotifier />
         </div>
       </MuiThemeProvider>
     );

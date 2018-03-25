@@ -20,17 +20,6 @@ import { fetchPayPeriodsPreview } from '../actions/pay-periods';
 import { horizontallyCenteredColumnContainer, tableColumnLeft, tableColumnCentered } from '../styles';
 
 class EmployeeSummary extends Component {
-  static defaultProps = {
-    employee: {
-      id: null,
-      firstName: '',
-      lastName: '',
-      annualSalary: 0.00,
-      annualBenefitsCost: 0.00,
-      notes: 0.00
-    },
-  };
-
   constructor(props) {
     super(props);
 
@@ -139,7 +128,10 @@ function mapStateToProps(state) {
 }
 
 function mapDispatchToProps(dispatch) {
-  return bindActionCreators({ fetchPayPeriodsPreview: fetchPayPeriodsPreview }, dispatch)
+  return bindActionCreators(
+    {
+      fetchPayPeriodsPreview: fetchPayPeriodsPreview,
+    }, dispatch);
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(EmployeeSummary);

@@ -9,7 +9,12 @@ describe('Pay period Actions', () => {
   it ('should create an action with a promise to call the pay periods API correctly', () => {
     const expectedEmployeeId = 1;
 
-    var action = fetchPayPeriodsPreview(expectedEmployeeId);
+    var mockDispatch = jest.fn();
+    fetchPayPeriodsPreview(expectedEmployeeId)(mockDispatch);
+
+    expect(mockDispatch.mock.calls.length).toBe(1);
+
+    var action = mockDispatch.mock.calls[0][0];
 
     expect(action).not.toBeNull();
     expect(action.type).toEqual(FETCH_PAY_PERIODS_PREVIEW);

@@ -6,7 +6,7 @@ import App from './App';
 
 const middlewares = [];
 const mockStore = configureMockStore(middlewares);
-const initialState = { employee: {} };
+const initialState = { employee: {}, error: { acknowledged: true } };
 const store = mockStore(initialState);
 
 it('renders without crashing', () => {

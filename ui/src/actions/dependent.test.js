@@ -10,8 +10,12 @@ describe('Dependent Actions', () => {
     const expectedEmployeeId = 1;
     const person = { employeeId: expectedEmployeeId, firstName: 'fn', lastName: 'ln' };
 
-    var action = registerDependent(person);
+    var mockDispatch = jest.fn();
+    registerDependent(person)(mockDispatch);
 
+    expect(mockDispatch.mock.calls.length).toBe(1);
+
+    var action = mockDispatch.mock.calls[0][0];
     expect(action).not.toBeNull();
     expect(action.type).toEqual(REGISTER_DEPENDENT);
     expect(action.payload).toBeDefined();
