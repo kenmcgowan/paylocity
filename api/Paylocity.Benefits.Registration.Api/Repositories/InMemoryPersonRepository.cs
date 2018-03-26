@@ -1,6 +1,7 @@
 ﻿using Paylocity.Benefits.Registration.Api.Exceptions;
 using Paylocity.Benefits.Registration.Api.Interfaces;
 using Paylocity.Benefits.Registration.Api.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -9,9 +10,10 @@ namespace Paylocity.Benefits.Registration.Api.Repositories
 {
     // A few notes regarding this class: In the interest of keeping the scope of the code sample scope
     // reasonable, I chose to use a simple in-memory store where data is stored in dictionaries. For the
-    // same reasons, I also chose not to implement many of the defensive techniques that you would
-    // normally find here (parameter checking, etc.). Those techniques are used throughout the
-    // rest of the sample, so I didn't feel repeating it here would demonstrate anything new or distinct.
+    // same reasons, I also chose not to implement some of the defensive techniques that you would
+    // normally find here (checking for null or otherwise invalid properties, etc.). Those techniques are
+    // used throughout the rest of the sample, so I didn't feel repeating it here would demonstrate anything
+    // new or distinct.
 
     /// <summary>
     /// Provides a simple in-memory store for the demo application.
@@ -56,6 +58,11 @@ namespace Paylocity.Benefits.Registration.Api.Repositories
 
         public Employee StoreEmployee(EmployeeInfo employeeInfo)
         {
+            if (employeeInfo == null)
+            {
+                throw new ArgumentNullException(nameof(employeeInfo));
+            }
+
             var id = InMemoryPersonRepository.GetNewId();
 
             var newEmployee = new Employee
@@ -75,6 +82,11 @@ namespace Paylocity.Benefits.Registration.Api.Repositories
 
         public Dependent StoreDependent(DependentInfo dependentInfo)
         {
+            if (dependentInfo == null)
+            {
+                throw new ArgumentNullException(nameof(dependentInfo));
+            }
+
             var id = InMemoryPersonRepository.GetNewId();
 
             var newDependent = new Dependent

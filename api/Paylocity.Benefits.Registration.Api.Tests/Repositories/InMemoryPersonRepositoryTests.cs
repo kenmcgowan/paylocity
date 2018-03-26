@@ -2,6 +2,7 @@
 using Paylocity.Benefits.Registration.Api.Exceptions;
 using Paylocity.Benefits.Registration.Api.Models;
 using Paylocity.Benefits.Registration.Api.Repositories;
+using System;
 using System.Collections.Generic;
 using Xunit;
 
@@ -47,6 +48,15 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Repositories
         }
 
         [Fact]
+        public void StoreEmployee_NullEmployee_ThrowsArgumentNullException()
+        {
+            var sut = new InMemoryPersonRepository();
+
+            sut.Invoking(repository => repository.StoreEmployee(null))
+                .Should().Throw<ArgumentNullException>();
+        }
+
+        [Fact]
         public void StoreEmployee_ValidEmployee_SuccessfullyStoresEmployee()
         {
             var expectedFirstName = "Apostolis";
@@ -74,6 +84,15 @@ namespace Paylocity.Benefits.Registration.Api.Tests.Repositories
                 employeeStore.ContainsKey(actualEmployee.Id).Should().BeTrue();
                 employeeStore[actualEmployee.Id].Should().BeSameAs(actualEmployee);
             }
+        }
+
+        [Fact]
+        public void StoreDependent_NullEmployee_ThrowsArgumentNullException()
+        {
+            var sut = new InMemoryPersonRepository();
+
+            sut.Invoking(repository => repository.StoreDependent(null))
+                .Should().Throw<ArgumentNullException>();
         }
 
         [Fact]
